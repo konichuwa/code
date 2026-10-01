@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Urban Clash — Developed by Sayon</title>
+    <meta name="description" content="Urban Clash — A 2D street fighting arcade game developed by Sayon featuring 4 fighters, 16 arenas, and epic boss battles." />
+    <meta property="og:title" content="Urban Clash — Developed by Sayon" />
+    <meta property="og:description" content="Urban Clash — A 2D street fighting arcade game developed by Sayon featuring 4 fighters, 16 arenas, and epic boss battles." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      body {
+        background-color: #080811;
+        color: #e2e8f0;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        overflow-x: hidden;
+        padding: 12px;
+      }
+      .brand-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        max-width: 800px;
+        margin-bottom: 8px;
+        padding: 4px 6px;
+      }
+      .brand-title {
+        font-size: 20px;
+        font-weight: 900;
+        letter-spacing: 1px;
+        color: #ef4444;
+        text-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .brand-dev {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1.2px;
+        color: #fbbf24;
+        text-transform: uppercase;
+        background: rgba(251, 191, 36, 0.12);
+        border: 1px solid rgba(251, 191, 36, 0.35);
+        border-radius: 4px;
+        padding: 3px 10px;
+        text-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+      }
+      #game-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 800px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-shadow: 0 16px 50px rgba(0, 0, 0, 0.9), 0 0 24px rgba(239, 68, 68, 0.2);
+        border-radius: 8px;
+        background: #0f0f18;
+        overflow: hidden;
+        border: 2px solid #27273f;
+      }
+      #canvas-container {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 800 / 450;
+        background: #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      canvas#gameCanvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+        image-rendering: pixelated;
+      }
+
+      /* High Scores Leaderboard Box (Top Right Corner) */
+      .hs-card {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 25;
+        background: rgba(12, 12, 22, 0.88);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(251, 191, 36, 0.4);
+        border-radius: 6px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.75), 0 0 10px rgba(245, 158, 11, 0.2);
+        width: 185px;
+        padding: 7px 9px;
+        color: #f8fafc;
+        pointer-events: auto;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .hs-card.minimized {
+        width: auto;
+        padding: 4px 9px;
+        background: rgba(12, 12, 22, 0.75);
+      }
+      .hs-card.minimized .hs-list {
+        display: none;
+      }
+      .hs-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        cursor: pointer;
+      }
+      .hs-title-wrap {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .hs-trophy {
+        font-size: 13px;
+        filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.8));
+      }
+      .hs-title {
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.8px;
+        color: #fbbf24;
+        text-transform: uppercase;
+      }
+      .hs-toggle-btn {
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        font-size: 9px;
+        cursor: pointer;
+        padding: 2px 4px;
+        border-radius: 3px;
+        transition: color 0.15s ease;
+      }
+      .hs-toggle-btn:hover {
+        color: #fbbf24;
+      }
+      .hs-list {
+        margin-top: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 5px;
+      }
+      .hs-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 10px;
+        padding: 2px 3px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .hs-row.hs-current {
+        background: rgba(239, 68, 68, 0.25);
+        border: 1px solid #ef4444;
+      }
+      .hs-rank {
+        width: 18px;
+        font-weight: 700;
+        color: #fbbf24;
+        font-size: 10px;
+      }
+      .hs-name {
+        flex: 1;
+        font-family: monospace;
+        font-weight: 700;
+        color: #e2e8f0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 0 4px;
+      }
+      .hs-score {
+        font-family: monospace;
+        font-weight: 700;
+        color: #38bdf8;
+        text-align: right;
+      }
+
+      /* Stage Select Modal */
+      .stage-modal-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 40;
+        background: rgba(5, 5, 12, 0.88);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px;
+        transition: opacity 0.2s ease;
+      }
+      .stage-modal-overlay.hidden {
+        display: none !important;
+      }
+      .stage-modal-box {
+        background: #0f101d;
+        border: 1.5px solid #3b3b5c;
+        border-radius: 8px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 25px rgba(245, 158, 11, 0.15);
+        width: 100%;
+        max-width: 760px;
+        max-height: 94%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .stage-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        background: #141526;
+        border-bottom: 1px solid #292942;
+      }
+      .stage-modal-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 900;
+        letter-spacing: 0.8px;
+        color: #fbbf24;
+      }
+      .stage-unlocked-badge {
+        font-size: 10px;
+        font-weight: 800;
+        background: rgba(34, 197, 94, 0.15);
+        border: 1px solid #22c55e;
+        color: #4ade80;
+        padding: 2px 8px;
+        border-radius: 12px;
+      }
+      .stage-modal-close-btn {
+        background: transparent;
+        border: 1px solid #475569;
+        color: #94a3b8;
+        width: 26px;
+        height: 26px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        transition: all 0.15s ease;
+      }
+      .stage-modal-close-btn:hover {
+        background: #e11d48;
+        border-color: #f43f5e;
+        color: #ffffff;
+      }
+      .stage-modal-sub {
+        font-size: 11px;
+        color: #94a3b8;
+        padding: 6px 14px 4px 14px;
+        background: #0f101d;
+      }
+      .stage-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
+        gap: 8px;
+        padding: 10px 14px;
+        overflow-y: auto;
+        max-height: 275px;
+      }
+      .stage-card {
+        background: #151627;
+        border: 1px solid #2f304f;
+        border-radius: 6px;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        position: relative;
+        text-align: left;
+      }
+      .stage-card:hover:not(.locked) {
+        border-color: #f59e0b;
+        background: #1c1d36;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+      }
+      .stage-card.active {
+        border: 1.5px solid #22c55e;
+        background: rgba(34, 197, 94, 0.12);
+        box-shadow: 0 0 10px rgba(34, 197, 94, 0.35);
+      }
+      .stage-card.locked {
+        opacity: 0.45;
+        background: #0c0d17;
+        border-color: #1f2033;
+        cursor: not-allowed;
+      }
+      .stage-num-badge {
+        font-size: 9px;
+        font-weight: 800;
+        color: #fbbf24;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+      }
+      .stage-card-name {
+        font-size: 11px;
+        font-weight: 700;
+        color: #f8fafc;
+        line-height: 1.2;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .stage-boss-tag {
+        font-size: 9px;
+        color: #94a3b8;
+        margin-bottom: 6px;
+      }
+      .stage-status-btn {
+        font-size: 9px;
+        font-weight: 800;
+        padding: 3px 6px;
+        border-radius: 3px;
+        text-align: center;
+        text-transform: uppercase;
+      }
+      .stage-status-btn.btn-play {
+        background: #f59e0b;
+        color: #000;
+      }
+      .stage-status-btn.btn-current {
+        background: #22c55e;
+        color: #000;
+      }
+      .stage-status-btn.btn-locked {
+        background: #27273a;
+        color: #64748b;
+      }
+      .stage-modal-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 14px;
+        background: #141526;
+        border-top: 1px solid #292942;
+      }
+      .stage-modal-footer-tip {
+        font-size: 10px;
+        color: #94a3b8;
+      }
+      .stage-modal-footer-actions {
+        display: flex;
+        gap: 8px;
+      }
+      .stage-unlock-all-btn {
+        background: #7c2d12;
+        border: 1px solid #ea580c;
+        color: #ffedd5;
+        font-size: 10px;
+        font-weight: 800;
+        padding: 4px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      .stage-unlock-all-btn:hover {
+        background: #c2410c;
+        color: #ffffff;
+      }
+      .stage-reset-btn {
+        background: #1e1e30;
+        border: 1px solid #3c3c56;
+        color: #94a3b8;
+        font-size: 10px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .stage-reset-btn:hover {
+        background: #374151;
+        color: #f8fafc;
+      }
+
+      /* Controls bar styling */
+      #controls-bar {
+        width: 100%;
+        background: #11111d;
+        border-top: 1px solid #232338;
+        padding: 8px 14px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: #94a3b8;
+      }
+      #instructions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+      }
+      .key-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #1e1e32;
+        border: 1px solid #3c3c58;
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-weight: 700;
+        color: #f8fafc;
+        font-size: 10px;
+        margin: 0 1px;
+      }
+      .action-tag {
+        color: #cbd5e1;
+        margin-right: 6px;
+        font-size: 11px;
+      }
+      .btn-group {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      #start-btn {
+        background: linear-gradient(135deg, #e11d48, #be123c);
+        border: 1px solid #fb7185;
+        color: #ffffff;
+        padding: 6px 14px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        transition: all 0.15s ease;
+      }
+      #start-btn:hover {
+        background: linear-gradient(135deg, #f43f5e, #e11d48);
+        box-shadow: 0 0 12px rgba(244, 63, 94, 0.6);
+        transform: scale(1.02);
+      }
+      #stage-btn {
+        background: #854d0e;
+        border: 1px solid #facc15;
+        color: #fef08a;
+        padding: 6px 11px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.4px;
+        transition: all 0.15s ease;
+      }
+      #stage-btn:hover {
+        background: #a16207;
+        color: #ffffff;
+        box-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
+      }
+      #mute-btn, #arena-btn, #restart-btn {
+        background: #1e1e30;
+        border: 1px solid #3c3c56;
+        color: #cbd5e1;
+        padding: 6px 11px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 600;
+        transition: all 0.15s ease;
+      }
+      #mute-btn:hover, #restart-btn:hover {
+        background: #2b2b45;
+        color: #ffffff;
+      }
+      #arena-btn {
+        background: #0369a1;
+        border-color: #38bdf8;
+        color: #ffffff;
+        font-weight: 700;
+      }
+      #arena-btn:hover {
+        background: #0284c7;
+      }
+
+      /* Mobile touch controls */
+      #touch-controls {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 14px;
+        background: #090912;
+        border-top: 1px solid #1a1a2b;
+      }
+      .touch-dpad, .touch-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .touch-btn {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        background: #181829;
+        border: 1px solid #31314d;
+        color: #f8fafc;
+        font-size: 14px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+      .touch-btn:active, .touch-btn.active {
+        background: #e11d48;
+        transform: scale(0.92);
+      }
+      .touch-btn.action-atk {
+        background: #2563eb;
+        border-color: #3b82f6;
+      }
+      .touch-btn.action-sp {
+        background: #9333ea;
+        border-color: #a855f7;
+      }
+      .touch-btn.touch-wide {
+        width: 66px;
+      }
+      @media (min-width: 768px) {
+        #touch-controls {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="brand-banner">
+      <div class="brand-title">
+        <span>⚔️</span>
+        <span>URBAN CLASH</span>
+      </div>
+      <div class="brand-dev">⚡ DEVELOPED BY SAYON ⚡</div>
+    </div>
+
+    <div id="game-wrapper">
+      <div id="canvas-container">
+        <canvas id="gameCanvas" width="800" height="450" tabindex="0"></canvas>
+
+        <!-- Top Right Corner Box: Top 5 Highest Scores -->
+        <div id="high-scores-box" class="hs-card" title="Top 5 High Scores">
+          <div class="hs-header" id="hs-header-btn">
+            <div class="hs-title-wrap">
+              <span class="hs-trophy">🏆</span>
+              <span class="hs-title">TOP 5 SCORES</span>
+            </div>
+            <button id="hs-toggle-btn" class="hs-toggle-btn" aria-label="Toggle High Scores">▼</button>
+          </div>
+          <div id="hs-list" class="hs-list">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Stage / Level Select Modal -->
+        <div id="stage-modal" class="stage-modal-overlay hidden">
+          <div class="stage-modal-box">
+            <div class="stage-modal-header">
+              <div class="stage-modal-title">
+                <span>🗺️</span>
+                <span>STAGE SELECT</span>
+                <span id="stage-unlocked-badge" class="stage-unlocked-badge">1 / 15 UNLOCKED</span>
+              </div>
+              <button id="stage-modal-close" class="stage-modal-close-btn" title="Close (ESC)">✕</button>
+            </div>
+            <div class="stage-modal-sub">
+              Switch between unlocked campaign stages. Defeat bosses to unlock subsequent levels permanently!
+            </div>
+            <div id="stage-cards-grid" class="stage-cards-grid">
+              <!-- Dynamically rendered -->
+            </div>
+            <div class="stage-modal-footer">
+              <div class="stage-modal-footer-tip">💡 Tip: Press <b>[N]</b> on keyboard to open Stage Select anytime.</div>
+              <div class="stage-modal-footer-actions">
+                <button id="stage-unlock-all-btn" class="stage-unlock-all-btn" title="Unlock all 15 stages">⭐ UNLOCK ALL</button>
+                <button id="stage-reset-btn" class="stage-reset-btn" title="Reset to Stage 1">🔄 Reset</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="controls-bar">
+        <div id="instructions">
+          <span class="action-tag"><span class="key-pill">A</span><span class="key-pill">D</span> Move</span>
+          <span class="action-tag"><span class="key-pill">W</span> Jump</span>
+          <span class="action-tag"><span class="key-pill">S</span> Block</span>
+          <span class="action-tag"><span class="key-pill">Space</span> Punch</span>
+          <span class="action-tag"><span class="key-pill">X</span> Special</span>
+          <span class="action-tag"><span class="key-pill">N</span> Stage</span>
+          <span class="action-tag"><span class="key-pill">B</span> Arena</span>
+        </div>
+        <div class="btn-group">
+          <button id="start-btn" title="Start Battle (Space or Enter)">⚔️ FIGHT</button>
+          <button id="stage-btn" title="Switch Stage (Key: N)">🗺️ STAGE 1 ▾</button>
+          <button id="restart-btn" title="Return to Character Select">🔄 Select</button>
+          <button id="arena-btn" title="Cycle Background Arena (Key: B)">🏟️ Arena</button>
+          <button id="mute-btn" title="Toggle Sound">🔊 Audio</button>
+        </div>
+      </div>
+
+      <div id="touch-controls">
+        <div class="touch-dpad">
+          <button class="touch-btn" id="btn-left" data-key="ArrowLeft">◀</button>
+          <button class="touch-btn" id="btn-down" data-key="ArrowDown">▼</button>
+          <button class="touch-btn" id="btn-up" data-key="ArrowUp">▲</button>
+          <button class="touch-btn" id="btn-right" data-key="ArrowRight">▶</button>
+        </div>
+        <div class="touch-actions">
+          <button class="touch-btn" id="btn-stage" style="background: #854d0e; border-color: #facc15; font-size: 11px; font-weight: 800;" title="Stage Select">STAGE</button>
+          <button class="touch-btn" id="btn-arena" style="background: #0284c7; border-color: #38bdf8; font-size: 11px; font-weight: 800;" title="Change Background">ARENA</button>
+          <button class="touch-btn action-atk touch-wide" id="btn-atk">PUNCH</button>
+          <button class="touch-btn action-sp touch-wide" id="btn-sp">SPECIAL</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/game/main.js"></script>
+  </body>
+</html>

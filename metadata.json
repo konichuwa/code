@@ -1,0 +1,6 @@
+{
+  "name": "Urban Clash",
+  "description": "A 2D side-scrolling street fighting game featuring 4 unique fighters including unlockable grandmaster Sayon, 16 switchable realistic arenas, 15 progressive levels, smashable props, item drops, and epic boss battles.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
